@@ -48,96 +48,99 @@ void ReportProperty_Error_Callback(const char* interfaceName, const char* proper
 char* DeviceInformation_5kj_Property_GetManufacturer()
 {
     // TODO: provide implementation here
-    return "abc";
+    return "Device Drivers";
 }
 
 char* DeviceInformation_5kj_Property_GetModel()
 {
     // TODO: provide implementation here
-    return "abc";
+    return "EnOcean Gateway";
 }
 
 char* DeviceInformation_5kj_Property_GetSwVersion()
 {
     // TODO: provide implementation here
-    return "abc";
+    return "0.1";
 }
 
 char* DeviceInformation_5kj_Property_GetOsName()
 {
     // TODO: provide implementation here
-    return "abc";
+    return "Raspbian GNU/Linux 9";
 }
 
 char* DeviceInformation_5kj_Property_GetProcessorArchitecture()
 {
     // TODO: provide implementation here
-    return "abc";
+    return "armv7l";
 }
 
 char* DeviceInformation_5kj_Property_GetProcessorManufacturer()
 {
     // TODO: provide implementation here
-    return "abc";
+    return "raspberry pi";
 }
 
 long DeviceInformation_5kj_Property_GetTotalStorage()
 {
     // TODO: provide implementation here
-    return 0L;
+    return 16384L;
 }
 
 long DeviceInformation_5kj_Property_GetTotalMemory()
 {
     // TODO: provide implementation here
-    return 0L;
+    return 1024L;
 }
 
 double EnOceanPnPTest2_sensor_Telemetry_ReadTemperature()
 {
-    // TODO: provide implementation here
-    return 0.0;
+    extern double eo_TP;
+    return eo_TP;
 }
 
 double EnOceanPnPTest2_sensor_Telemetry_ReadHumidity()
 {
-    // TODO: provide implementation here
-    return 0.0;
+    double eo_HU;
+    return eo_HU;
 }
 
 double EnOceanPnPTest2_sensor_Telemetry_ReadIllumination()
 {
-    // TODO: provide implementation here
-    return 0.0;
+    extern double eo_IL;
+    return eo_IL;
 }
 
 ENOCEANPNPTEST2_SENSOR_ACCELERATIONSTATUS EnOceanPnPTest2_sensor_Telemetry_ReadAccelerationstatus()
 {
-    // TODO: provide implementation here
-    return ENOCEANPNPTEST2_SENSOR_ACCELERATIONSTATUS_UNDEFINED;
+    extern int eo_AS;
+    return eo_AS == 0 ? ENOCEANPNPTEST2_SENSOR_ACCELERATIONSTATUS_periodicupdate :
+        eo_AS == 1 ? ENOCEANPNPTEST2_SENSOR_ACCELERATIONSTATUS_threshold1Exceeded :
+        eo_AS == 2 ? ENOCEANPNPTEST2_SENSOR_ACCELERATIONSTATUS_threshold2exceeded :
+        ENOCEANPNPTEST2_SENSOR_ACCELERATIONSTATUS_UNDEFINED; 
 }
 
 double EnOceanPnPTest2_sensor_Telemetry_ReadAccelerationx()
 {
-    // TODO: provide implementation here
-    return 0.0;
+    extern double eo_AX;
+    return eo_AX;
 }
 
 double EnOceanPnPTest2_sensor_Telemetry_ReadAccelerationy()
 {
-    // TODO: provide implementation here
-    return 0.0;
+    extern double eo_AY;
+    return eo_AY;
 }
 
 double EnOceanPnPTest2_sensor_Telemetry_ReadAccelerationz()
 {
-    // TODO: provide implementation here
-    return 0.0;
+    extern double eo_AZ;
+    return eo_AZ;
 }
 
 ENOCEANPNPTEST2_SENSOR_CONTACT EnOceanPnPTest2_sensor_Telemetry_ReadContact()
 {
-    // TODO: provide implementation here
-    return ENOCEANPNPTEST2_SENSOR_CONTACT_UNDEFINED;
+    extern int eo_CO;
+    return eo_CO == 0 ? ENOCEANPNPTEST2_SENSOR_CONTACT_open : ENOCEANPNPTEST2_SENSOR_CONTACT_close;
 }
 
