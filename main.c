@@ -177,6 +177,40 @@ double eo_AY;
 double eo_AZ;
 int eo_CO;
 
+#include "AssociativeAarray.c"
+
+#define MS_NUM_POINT (8) // Number of Multi Sensor points
+
+static const char *KeyPoints[MS_NUM_POINT + 1] = {
+	"TP", //0
+	"HU", //1
+	"IL", //2
+	"AS", //3
+	"AX", //4
+	"AY", //5
+	"AZ", //6
+	"CO", //7
+	NULL
+};
+
+int KeyIndex(char *Key)
+{
+	INT i;
+	BOOL found = FALSE;
+
+	for(i = 0; i < MS_NUM_POINT; i++) {
+		if(!strcmp(Key, KeyPoints[i])) {
+			found = TRUE;
+			break;
+		}
+	}
+	return(found ? i : -1);
+}
+
+char *IndexKey(int num)
+{
+	return((char *)KeyPoints[num & 7]);
+}
 /////////////////////////////////////////
 
 static void provisioningRegisterCallback(PROV_DEVICE_RESULT register_result, const char *iothub_uri, const char *device_id, void *user_context)
@@ -321,6 +355,10 @@ int main(int argc, char *argv[])
     int itemCount;
     int totalCount;
     FILE *f;
+    int i;
+   	int rtn, rtn2;
+	char *key;
+	char *value;
 
     if (argc == 4)
     {
@@ -330,9 +368,25 @@ int main(int argc, char *argv[])
     }
     else
     {
-        LogError("USAGE: enoceanpnp [Device ID] [DPS ID Scope] [DPS symmetric key]");
+        LogError("USAGE: enoceanpnp [Device ID] [DPS ID Scope] [DPS symmetric key] [[Point=Replace]...]");
+        LogError("       Available sensor point: TP, HU, IL, AS, AX, AY, AZ, CO");
         return 1;
     }
+
+	AAInit(0);
+
+	for(i = 0; i < MS_NUM_POINT; i++) {
+		AASetStr(IndexKey(i), IndexKey(i));
+	}
+
+	for(i = 4; argv[i] != NULL; i++) {
+		rtn = AASplit(argv[i], &key, &value);
+		if (rtn > 0) {
+			rtn = AASetStr(key, value);
+			rtn2 = AASetStr(value, key);
+			printf("AASet=%d,%d %s %s\n", rtn, rtn2, key, value);
+		}
+	}
 
     printf(version);
     PidPath = EoMakePath(EO_DIRECTORY, AZ_PID_FILE);
@@ -387,46 +441,17 @@ int main(int argc, char *argv[])
                 }
                 else if (PatrolTable[i] == DataExists)
                 {
-                    double value;
-                    int number;
+                    int indicator = 0;
                     itemCount = 0;
                     totalCount++;
 
                     while((pe = EoGetDataByIndex(i)) != NULL)
                     {
-                        value = strtod(pe->Data, NULL);
-                        printf("%d: %s: %s [%.3f]\n",
-                           itemCount, pe->Name, pe->Desc, value);
+    					AASetData(pe->Name, pe->Data);
 
-                        switch(itemCount)
-                        {
-                        case 0:
-                            eo_TP = value;
-                            break;
-                        case 1:
-                            eo_HU = value;
-                            break;
-                        case 2:
-                            eo_IL = value;
-                            break;
-                        case 3:
-                            eo_AS = (int) strtoul(pe->Data, NULL, 10);
-                            break;
-                        case 4:
-                            eo_AX = value;
-                            break;
-                        case 5:
-                            eo_AY = value;
-                            break;
-                        case 6:
-                            eo_AZ = value;
-                            break;
-                        case 7:
-                            eo_CO = (int) strtoul(pe->Data, NULL, 10);
-                            break;
-                        default:
-                            break;
-                        }
+	    				printf("%d:%d:%d(%s) %s [%s]\n",
+					        i, itemCount, indicator, pe->Name, pe->Desc, pe->Data);
+
                         itemCount++;
                     }
                     PatrolTable[i] = NoData;
@@ -437,7 +462,60 @@ int main(int argc, char *argv[])
                 }
             }
 
-            ThreadAPI_Sleep(10 * 1000);
+            for(i = 0; i < 8; i++)
+            {
+                char *key = IndexKey(i);
+                char *diverted;
+                char data[64];
+                double value = 0.00D;
+                int number = 0;
+                int status;
+
+                diverted = AAGetStr(key);
+                status = AAGetValidData(diverted, data);
+                if (status >= 0) {
+                    if (!strcmp("AS", diverted) || !strcmp("CO", diverted)) {
+                        number = (int) strtoul(data, NULL, 10);
+                    }
+                    else {
+                        value = strtod(data, NULL);
+                    }
+
+                    printf("%s=%s [%s] num=%d dat=%03f\n",
+                        key, diverted, data, number, value);
+
+                    switch(i)
+                    {
+                    case 0:
+                        eo_TP = value;
+                        break;
+                    case 1:
+                        eo_HU = value;
+                        break;
+                    case 2:
+                        eo_IL = value;
+                        break;
+                    case 3:
+                        eo_AS = number;
+                        break;
+                    case 4:
+                        eo_AX = value;
+                        break;
+                    case 5:
+                        eo_AY = value;
+                        break;
+                    case 6:
+                        eo_AZ = value;
+                        break;
+                    case 7:
+                        eo_CO = number;
+                        break;
+                    default:
+                        break;
+                    }
+    			}
+            }
+            ThreadAPI_Sleep(5 * 1000);
         }
     }
 
